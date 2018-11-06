@@ -1,0 +1,74 @@
+{
+        "provisioners": [
+                {
+                        "type": "shell-local",
+                        "command" : "rm -f testpolicy-*.tgz"
+                },
+                {
+                        "type": "shell-local",
+                        "command" : "chef install -D testpolicy.rb;chef export -a -D testpolicy.rb ."
+                },
+                {
+                        "type": "shell-local",
+                        "command" : "mv testpolicy-*.tgz testpolicy.tgz;"
+                },
+                {
+                        "type": "shell",
+                        "inline": [
+                                "mkdir -p /tmp/packer-chef/cookbooks-3/",
+                                "mkdir -p /tmp/packer-chef/cookbooks-3/policy_groups/local/policies/"
+                        ]
+                },
+        {
+                        "type": "file",
+                        "source": "client-key.pem",
+                        "destination": "/tmp/client-key.pem"
+                },
+                {
+                        "type": "file",
+                        "source": "testpolicy.tgz",
+                        "destination": "/tmp/packer-chef/cookbooks-3/testpolicy.tgz"
+                },
+                {
+                        "type": "file",
+                        "source": "testpolicy.rb",
+                        "destination": "/tmp/packer-chef/cookbooks-3/policy_groups/local/policies/testpolicy.rb"
+                },
+                {
+                        "type": "file",
+                        "source": "client.rb",
+                        "destination": "/tmp/client.rb"
+                },
+                {
+                        "type": "shell",
+                        "inline": [
+                                "cd /tmp/packer-chef/cookbooks-3/",
+                                "tar xvzf testpolicy.tgz"
+                        ]
+                },
+                {
+                        "type": "shell",
+                        "inline": [
+                                "curl -L https://omnitruck.chef.io/install.sh | sudo bash",
+                                "cd /tmp/packer-chef/cookbooks-3/",
+                                "tar xvzf testpolicy.tgz",
+                                "sudo yum update -y",
+                                "sudo yum install sysstat -y",
+                                "sudo chef-client -z ",
+                                "sudo mv /tmp/packer-chef /root/",
+				"sudo mv /tmp/client-key.pem /root/",
+				"sudo mv /tmp/client.rb /root/"
+                        ]
+                }
+        ],
+  "builders": [
+    {
+      "type": "googlecompute",
+      "project_id": "techops-ittest-gcp",
+      "account_file": "google.json",
+      "source_image_family": "centos-7",
+      "ssh_username": "packer",
+      "zone": "us-central1-a"
+    }
+  ]
+}
